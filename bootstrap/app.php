@@ -9,6 +9,6 @@ return Application::create(
     providers: [
         \App\Providers\AppServiceProvider::class,
         \App\Providers\HorizonServiceProvider::class,
-        TelescopeApplicationServiceProvider::class,
+        //TelescopeApplicationServiceProvider::class,
     ],
 );
