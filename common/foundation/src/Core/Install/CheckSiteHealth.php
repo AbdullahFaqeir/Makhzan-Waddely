@@ -98,9 +98,9 @@ class CheckSiteHealth
         $basePath = base_path();
         return [
             'items' => collect([
-                '.htaccess',
+                //'.htaccess',
                 'public/.htaccess',
-                config('app.installed') ? '.env' : 'env.example',
+                //config('app.installed') ? '.env' : 'env.example',
                 'storage',
                 'storage/app',
                 'storage/logs',

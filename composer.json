@@ -96,7 +96,8 @@
     "laravel": {
       "dont-discover": [
         "itsgoingd/clockwork",
-        "matchish/laravel-scout-elasticsearch"
+        "matchish/laravel-scout-elasticsearch",
+        "laravel/telescope"
       ]
     },
     "google/apiclient-services": [
