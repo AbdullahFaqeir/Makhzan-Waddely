@@ -1,0 +1,1 @@
+import{br as u,av as n}from"./main-TIUJvpaR.js";function o(){var i,r,e;const s=u("me",{with:["subscriptions.product","subscriptions.price"]});return{subscription:(r=(i=s.data)==null?void 0:i.user.subscriptions)==null?void 0:r[0],isLoading:s.isLoading,user:(e=s.data)==null?void 0:e.user}}function c(){n.invalidateQueries({queryKey:["users"]})}export{c as i,o as u};
