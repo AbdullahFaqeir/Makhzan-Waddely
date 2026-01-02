@@ -249,9 +249,9 @@ return [
                 [
                     'name' => 'hero-split-with-screenshot',
                     'badge' => '30-Day Money-Back Guarantee',
-                    'title' => 'BeDrive. A new home for your files.',
+                    'title' => 'MakhzanWaddely. A new home for your files.',
                     'description' =>
-                        'Experience the next generation of cloud storage. BeDrive provides a secure, fast, and intuitive platform to store, share, and manage all your digital assets.',
+                        'Experience the next generation of cloud storage. MakhzanWaddely provides a secure, fast, and intuitive platform to store, share, and manage all your digital assets.',
                     'image' => [
                         'src' => 'images/landing/hero.webp',
                         'width' => 2432,
@@ -279,7 +279,7 @@ return [
                     'badge' => 'POWERFUL FEATURES',
                     'title' => 'Everything you need to manage your files',
                     'description' =>
-                        'We built BeDrive with the tools you need to stay organized, efficient, and in control of your data, whether you\'re working alone or as part of a team.',
+                        'We built MakhzanWaddely with the tools you need to stay organized, efficient, and in control of your data, whether you\'re working alone or as part of a team.',
                     'features' => [
                         [
                             'title' => 'Large file uploads',
@@ -314,7 +314,7 @@ return [
                         [
                             'title' => 'Developer-friendly API',
                             'description' =>
-                                'Integrate BeDrive into your existing workflow. Our robust Rest API allows for powerful custom automations.',
+                                'Integrate MakhzanWaddely into your existing workflow. Our robust Rest API allows for powerful custom automations.',
                             'icon' => 'code',
                         ],
                     ],
@@ -404,7 +404,7 @@ return [
                         [
                             'title' => 'Office & PDF previews.',
                             'description' =>
-                                'Open and review Microsoft Office documents (Word, Excel, PowerPoint) and Adobe PDFs directly in BeDrive.',
+                                'Open and review Microsoft Office documents (Word, Excel, PowerPoint) and Adobe PDFs directly in MakhzanWaddely.',
                             'icon' => 'pictureAsPdf',
                         ],
                     ],
@@ -418,7 +418,7 @@ return [
                 ],
                 [
                     'name' => 'cta-simple-centered',
-                    'title' => 'Get started with BeDrive today',
+                    'title' => 'Get started with MakhzanWaddely today',
                     'description' =>
                         'Sign up for free and get 10 GB of secure storage, or explore our business plans for advanced collaboration, unlimited space, and powerful admin tools.',
                     'buttons' => [

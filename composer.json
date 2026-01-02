@@ -37,6 +37,7 @@
     "laravel/scout": "^10.6",
     "laravel/slack-notification-channel": "^3.5",
     "laravel/socialite": "^5.18",
+    "laravel/telescope": "^5.16",
     "league/color-extractor": "0.4",
     "league/flysystem-aws-s3-v3": "^3.2",
     "league/flysystem-ftp": "^3.0",
@@ -95,8 +96,7 @@
     "laravel": {
       "dont-discover": [
         "itsgoingd/clockwork",
-        "matchish/laravel-scout-elasticsearch",
-        "laravel/telescope"
+        "matchish/laravel-scout-elasticsearch"
       ]
     },
     "google/apiclient-services": [
