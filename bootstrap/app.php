@@ -8,6 +8,7 @@ return Application::create(
     basePath: dirname(__DIR__),
     providers: [
         \App\Providers\AppServiceProvider::class,
+        \App\Providers\HorizonServiceProvider::class,
         TelescopeApplicationServiceProvider::class,
     ],
 );
