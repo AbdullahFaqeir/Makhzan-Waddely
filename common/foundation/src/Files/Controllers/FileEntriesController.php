@@ -4,8 +4,10 @@ namespace Common\Files\Controllers;
 
 use Common\Files\FileEntry;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Common\Core\BaseController;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Http\JsonResponse;
 use Common\Files\FileEntryPayload;
 use Common\Files\Actions\StoreFile;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +17,7 @@ use Common\Database\Datasource\Datasource;
 use Common\Files\Actions\FileUploadValidator;
 use Common\Files\Response\FileResponseFactory;
 use Common\Files\Actions\Deletion\DeleteEntries;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
 /**
@@ -34,8 +37,7 @@ class FileEntriesController extends BaseController
              ->only(['index']);
     }
 
-    public function index(
-    ): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Contracts\Routing\ResponseFactory
+    public function index(): array|Response|JsonResponse|ResponseFactory
     {
         $params = $this->request->all();
         $params['userId'] = $this->request->get('userId');
@@ -66,14 +68,13 @@ class FileEntriesController extends BaseController
     }
 
     public function showModel(FileEntry $fileEntry
-    ): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Contracts\Routing\ResponseFactory {
+    ): Response|JsonResponse|ResponseFactory {
         $this->authorize('show', $fileEntry);
 
         return $this->success(['fileEntry' => $fileEntry]);
     }
 
-    public function store(
-    ): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Contracts\Routing\ResponseFactory
+    public function store(): Response|JsonResponse|ResponseFactory
     {
         $parentId = (int)request('parentId') ?: null;
         request()->merge(['parentId' => $parentId]);
@@ -113,8 +114,8 @@ class FileEntriesController extends BaseController
         return $this->success(['fileEntry' => $fileEntry->load('users')], 201);
     }
 
-    public function update(int $entryId
-    ): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Contracts\Routing\ResponseFactory {
+    public function update(int $entryId): Response|JsonResponse|ResponseFactory
+    {
         $this->authorize('update', [FileEntry::class, [$entryId]]);
 
         $this->validate($this->request, [
