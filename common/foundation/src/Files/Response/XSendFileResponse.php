@@ -3,24 +3,24 @@
 namespace Common\Files\Response;
 
 use Common\Files\FileEntry;
-use Common\Files\Response\FileResponse;
 
+/**
+ * Class XSendFileResponse.
+ *
+ * @package Common\Files\Response
+ * @date    07/01/2026
+ * @author  Abdullah Al-Faqeir <abdullah@devloops.net>
+ */
 class XSendFileResponse implements FileResponse
 {
-    public function make(FileEntry $entry, array $options)
+    public function make(FileEntry $entry, array $options): void
     {
-        $path =
-            $entry->getDisk()->path('') .
-            '/' .
-            $entry->getStoragePath($options['useThumbnail']);
+        $path = $entry->getDisk()
+                      ->path('').$entry->getStoragePath($options['useThumbnail']);
         $disposition = $options['disposition'];
         header("X-Sendfile: $path");
         header("Content-Type: {$entry->mime}");
-        header(
-            "Content-Disposition: $disposition; filename=\"" .
-                $entry->getNameWithExtension() .
-                '"',
-        );
+        header("Content-Disposition: $disposition; filename=\"".$entry->getNameWithExtension().'"');
         exit();
     }
 }

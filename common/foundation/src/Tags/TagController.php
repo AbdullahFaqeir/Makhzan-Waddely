@@ -27,7 +27,7 @@ class TagController extends BaseController
             $builder->where('user_id', $userId);
         }
 
-        // don't show "label" tags in bedrive
+        // don't show "label" tags in waddely
         $builder->where('type', '!=', 'label');
 
         $dataSource = new Datasource($builder, request()->all());

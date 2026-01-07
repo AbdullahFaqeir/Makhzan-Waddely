@@ -2,15 +2,15 @@
 
 namespace App\Policies;
 
-use App\Models\ShareableLink;
 use App\Models\User;
-use App\Services\Links\ValidatesLinkPassword;
-use Common\Core\Policies\FileEntryPolicy;
 use Common\Files\FileEntry;
+use Illuminate\Support\Arr;
+use Illuminate\Http\Request;
+use App\Models\ShareableLink;
 use Common\Settings\Settings;
 use Common\Workspaces\ActiveWorkspace;
-use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
+use Common\Core\Policies\FileEntryPolicy;
+use App\Services\Links\ValidatesLinkPassword;
 
 class DriveFileEntryPolicy extends FileEntryPolicy
 {
@@ -32,7 +32,7 @@ class DriveFileEntryPolicy extends FileEntryPolicy
         // if we're requesting resources for a particular workspace, let user view the resources
         // as long as they are a member, even without explicit "files.view" permission
         if (!$entryIds && !$this->activeWorkspace->isPersonal()) {
-            return (bool) $this->activeWorkspace->member($currentUser->id);
+            return (bool)$this->activeWorkspace->member($currentUser->id);
         }
 
         return parent::index($currentUser, $entryIds, $userId);
@@ -46,7 +46,6 @@ class DriveFileEntryPolicy extends FileEntryPolicy
         if (($link = $this->getLinkForRequest($link)) !== null) {
             return $this->authorizeShareableLink($link, $entry);
         }
-
         return parent::show($user, $entry);
     }
 
@@ -63,37 +62,34 @@ class DriveFileEntryPolicy extends FileEntryPolicy
         return parent::download($user, $entries);
     }
 
-    protected function userCan(User $currentUser, string $permission, $entries)
-    {
+    protected function userCan(
+        User $currentUser,
+        string $permission,
+        $entries
+    ): bool {
         $entries = $this->findEntries($entries);
 
         // first run regular checks (user has global permission, or owns entry)
         if (parent::userCan($currentUser, $permission, $entries)) {
             return true;
-
             // if we're not in personal workspace, check if user has permissions via workspace
-        } elseif (!$this->activeWorkspace->isPersonal()) {
+        }
+
+        if (!$this->activeWorkspace->isPersonal()) {
             // first check if user is a member of active workspace
-            if (
-                ($workspaceMember = $this->activeWorkspace->member(
-                    $currentUser->id,
-                )) !== null
-            ) {
+            if (($workspaceMember = $this->activeWorkspace->member($currentUser->id)) !== null) {
                 // then check if user has specified permission for all the entries
                 return $entries->every(function (FileEntry $entry) use (
                     $permission,
                     $workspaceMember,
                 ) {
-                    $entryIsInWorkspace =
-                        (int) $entry->workspace_id ===
-                        $this->activeWorkspace->id;
+                    $entryIsInWorkspace = (int)$entry->workspace_id === $this->activeWorkspace->id;
                     // file entry listing will be restricted in the builder query, no need to error here if user has no permission
                     if ($permission === 'files.view') {
                         return $entryIsInWorkspace;
-                    } else {
-                        return $entryIsInWorkspace &&
-                            $workspaceMember->hasPermission($permission);
                     }
+
+                    return $entryIsInWorkspace && $workspaceMember->hasPermission($permission);
                 });
             }
         }
@@ -112,10 +108,8 @@ class DriveFileEntryPolicy extends FileEntryPolicy
 
         // user can view this file if file or any of its parents is attached to specified link
         $entryPath = explode('/', $entry->path);
-        $link = Arr::first(
-            $entryPath,
-            fn($entryId) => (int) $entryId === $link->entry_id,
-        );
+        $link = Arr::first($entryPath,
+            fn($entryId) => (int)$entryId === $link->entry_id,);
 
         return $link ?? false;
     }

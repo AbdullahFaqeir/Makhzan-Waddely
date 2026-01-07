@@ -49,11 +49,11 @@ export function useDriveUploadQueue() {
       }
 
       const restrictions = restrictionsFromConfig({
-        uploadType: UploadType.bedrive,
+        uploadType: UploadType.waddely,
       });
 
       uploadMultiple(files, {
-        uploadType: UploadType.bedrive,
+        uploadType: UploadType.waddely,
         metadata: {
           parentId: parentId ?? driveState().activePage?.folder?.id ?? null,
           workspaceId: getActiveWorkspaceId(),

@@ -66,7 +66,7 @@ class HydrateUserWithSampleDriveContents
             return;
         }
 
-        $uploadType = Uploads::type('bedrive');
+        $uploadType = Uploads::type('waddely');
 
         foreach (File::files($folderPath) as $path) {
             $uploadedFile = new UploadedFile(
@@ -80,7 +80,7 @@ class HydrateUserWithSampleDriveContents
                 'file' => $uploadedFile,
                 'parentId' => $parentId,
                 'ownerId' => $this->user->id,
-                'uploadType' => 'bedrive',
+                'uploadType' => 'waddely',
                 'backendId' => $uploadType->backendIds[0],
             ]);
 

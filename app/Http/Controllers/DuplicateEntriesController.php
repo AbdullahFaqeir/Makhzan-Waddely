@@ -46,7 +46,7 @@ class DuplicateEntriesController extends BaseController
         ))->execute();
 
         // $totalBytes = $this->entry->whereIn('id', $entryIds)->sum('file_size');
-        // $usage = new GetUserSpaceUsage(uploadType: 'bedrive');
+        // $usage = new GetUserSpaceUsage(uploadType: 'waddely');
         // if (!$usage->hasEnoughSpaceToUpload($totalBytes)) {
         //     return $this->error(FileUploadValidator::notEnoughSpaceMessage());
         // }

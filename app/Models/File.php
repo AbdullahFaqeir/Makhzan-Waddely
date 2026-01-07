@@ -3,19 +3,29 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * Class File.
+ *
+ * @package App\Models
+ * @date    07/01/2026
+ * @author  Abdullah Al-Faqeir <abdullah@devloops.net>
+ */
 class File extends FileEntry
 {
-    use HasFactory;
-
+    /**
+     * @var string
+     */
     protected $table = 'file_entries';
 
+    /**
+     * @return void
+     */
     protected static function boot()
     {
         parent::boot();
 
-        static::addGlobalScope('fsType', function (Builder $builder) {
+        static::addGlobalScope('fsType', static function (Builder $builder) {
             $builder->where('type', '!=', 'folder');
         });
     }

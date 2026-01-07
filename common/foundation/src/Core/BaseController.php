@@ -1,31 +1,33 @@
-<?php namespace Common\Core;
+<?php
+
+namespace Common\Core;
 
 use App\Models\User;
-use Common\Core\Demo\BlocksFunctionalityOnDemoSite;
-use Common\Core\Prerender\HandlesSeo;
-use Common\Core\Rendering\RendersClientSideApp;
-use Illuminate\Auth\Access\Response as AuthResponse;
-use Illuminate\Contracts\Auth\Access\Gate;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
+use Common\Core\Prerender\HandlesSeo;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Common\Core\Rendering\RendersClientSideApp;
+use Illuminate\Contracts\Routing\ResponseFactory;
+use Common\Core\Demo\BlocksFunctionalityOnDemoSite;
+use Illuminate\Auth\Access\Response as AuthResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BaseController extends Controller
 {
-    use AuthorizesRequests,
-        DispatchesJobs,
-        ValidatesRequests,
-        HandlesSeo,
-        RendersClientSideApp,
-        BlocksFunctionalityOnDemoSite;
+    use AuthorizesRequests, DispatchesJobs, ValidatesRequests, HandlesSeo, RendersClientSideApp, BlocksFunctionalityOnDemoSite;
 
-    // todo: refactor bedrive and belink policies to use basePolicy permission check and remove guest fetching here
+    // todo: refactor waddely and belink policies to use basePolicy permission check and remove guest fetching here
 
     /**
      * Authorize a given action for the current user
@@ -36,28 +38,24 @@ class BaseController extends Controller
         mixed $arguments = [],
     ): AuthResponse {
         if (Auth::check()) {
-            [$ability, $arguments] = $this->parseAbilityAndArguments(
-                $ability,
-                $arguments,
-            );
+            [$ability, $arguments] = $this->parseAbilityAndArguments($ability,
+                $arguments,);
             return app(Gate::class)->authorize($ability, $arguments);
-        } else {
-            $guest = new User();
-            // make sure ID is not NULL to avoid false positives in authorization
-            $guest->forceFill(['id' => -1]);
-            $guest->setRelation('roles', collect([app('guestRole')]));
-            return $this->authorizeForUser($guest, $ability, $arguments);
         }
+
+        $guest = new User();
+        // make sure ID is not NULL to avoid false positives in authorization
+        $guest->forceFill(['id' => -1]);
+        $guest->setRelation('roles', collect([app('guestRole')]));
+        return $this->authorizeForUser($guest, $ability, $arguments);
     }
 
-    public function renderClientOrApi(array $options)
+    public function renderClientOrApi(array $options): \Illuminate\Contracts\View\View|Factory|Response|JsonResponse|\Illuminate\View\View|ResponseFactory
     {
         $data = Arr::get($options, 'data', []);
         $pageName = Arr::get($options, 'pageName');
         if ($pageName) {
-            $seoTagsView = View::exists("editable-views::seo-tags.$pageName")
-                ? "editable-views::seo-tags.$pageName"
-                : "seo.$pageName.seo-tags";
+            $seoTagsView = View::exists("editable-views::seo-tags.$pageName") ? "editable-views::seo-tags.$pageName" : "seo.$pageName.seo-tags";
         }
 
         // if it's an API request, simply return data as JSON
@@ -70,12 +68,10 @@ class BaseController extends Controller
         }
 
         // if it's a web request, prerender a simple blade page for crawlers
-        if (
-            !Arr::get($options, 'noPrerender') &&
-            isCrawler() &&
-            $pageName &&
-            View::exists("seo.$pageName.prerender")
-        ) {
+        if (!Arr::get($options, 'noPrerender')
+            && isCrawler()
+            && $pageName
+            && View::exists("seo.$pageName.prerender")) {
             return view("seo.$pageName.prerender", $data)->with([
                 'htmlBaseUri' => app(AppUrl::class)->htmlBaseUri,
                 'seoTagsView' => $seoTagsView ?? null,
@@ -84,7 +80,7 @@ class BaseController extends Controller
 
         // finally render the full react app
         return $this->renderClientSideApp([
-            'pageData' => $data,
+            'pageData'    => $data,
             'seoTagsView' => $seoTagsView ?? null,
         ]);
     }
@@ -93,17 +89,15 @@ class BaseController extends Controller
         array|Collection $data = [],
         int $status = 200,
         array $options = [],
-    ) {
+    ): Response|JsonResponse|ResponseFactory {
         $data = $data ?: [];
         if (!Arr::get($data, 'status')) {
             $data['status'] = 'success';
         }
 
         // only generate seo tags if request is coming from frontend and not from API
-        if (
-            (requestIsFromFrontend() || defined('SHOULD_PRERENDER')) &&
-            ($response = $this->handleSeo($data, $options))
-        ) {
+        if ((requestIsFromFrontend() || defined('SHOULD_PRERENDER'))
+            && ($response = $this->handleSeo($data, $options))) {
             return $response;
         }
 
@@ -124,22 +118,22 @@ class BaseController extends Controller
         array $errors = [],
         int $status = 422,
         $data = [],
-    ) {
+    ): JsonResponse {
         $data = array_merge($data, [
             'message' => $message,
-            'errors' => $errors ?: [],
+            'errors'  => $errors ?: [],
         ]);
         return response()->json($data, $status);
     }
 
-    public function stream(callable $callback)
+    public function stream(callable $callback): StreamedResponse
     {
         return response()->stream($callback, 200, [
-            'Cache-Control' => 'no-cache',
-            'Connection' => 'keep-alive',
+            'Cache-Control'     => 'no-cache',
+            'Connection'        => 'keep-alive',
             'X-Accel-Buffering' => 'no',
-            'Content-Type' => 'text/event-stream',
-            'Content-Encoding' => 'disabled',
+            'Content-Type'      => 'text/event-stream',
+            'Content-Encoding'  => 'disabled',
         ]);
     }
 }

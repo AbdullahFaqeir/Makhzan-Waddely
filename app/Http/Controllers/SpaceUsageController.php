@@ -13,7 +13,7 @@ class SpaceUsageController extends BaseController
     {
         $this->authorize('show', Auth::user());
 
-        $usage = (new GetUserSpaceUsage(uploadType: 'bedrive'))->execute();
+        $usage = (new GetUserSpaceUsage(uploadType: 'waddely'))->execute();
 
         return $this->success($usage);
     }

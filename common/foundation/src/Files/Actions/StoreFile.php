@@ -2,69 +2,75 @@
 
 namespace Common\Files\Actions;
 
-use Common\Files\FileEntryPayload;
-use Common\Files\Uploads\Uploads;
-use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\File;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\File as FileFacade;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use League\Flysystem\Local\LocalFilesystemAdapter;
+use Common\Files\Uploads\Uploads;
+use Illuminate\Http\UploadedFile;
+use Common\Files\FileEntryPayload;
 use Symfony\Component\Mime\MimeTypes;
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Support\Facades\File as FileFacade;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 
+/**
+ * Class StoreFile.
+ *
+ * @package Common\Files\Actions
+ * @date    07/01/2026
+ * @author  Abdullah Al-Faqeir <abdullah@devloops.net>
+ */
 class StoreFile
 {
     protected Filesystem $disk;
+
     protected array $diskOptions;
+
     protected FileEntryPayload $payload;
 
     public function execute(
         FileEntryPayload $payload,
         array $fileOptions,
     ): string|false {
-        $this->disk = Uploads::disk(
-            $payload->uploadType->name,
-            $payload->backend->id,
-        );
+        $this->disk = Uploads::disk($payload->uploadType->name,
+            $payload->backend->id,);
 
         $this->diskOptions = [
-            'mimetype' => $payload->clientMime,
+            'mimetype'   => $payload->clientMime,
             'visibility' => $payload->uploadType->visibility,
         ];
 
         $this->payload = $payload;
 
-        if (
-            // prevent uploading .htaccess files
-            $payload->filename === '.htaccess' ||
-            // dont store php files in public disk
-            ($payload->uploadType->public &&
-                $this->isPhpFile($payload, $fileOptions)) ||
-            // prevent path traversal or storing at root in user specified folder
-            ($payload->diskPrefix &&
-                (Str::contains($payload->diskPrefix, '..') ||
-                    $payload->diskPrefix === '/'))
-        ) {
+        if (// prevent uploading .htaccess files
+            $payload->filename === '.htaccess'
+            || // dont store php files in public disk
+            ($payload->uploadType->public
+             && $this->isPhpFile($payload, $fileOptions))
+            || // prevent path traversal or storing at root in user specified folder
+            ($payload->diskPrefix
+             && (Str::contains($payload->diskPrefix, '..')
+                 || $payload->diskPrefix === '/'))) {
             abort(403);
         }
 
         if (isset($fileOptions['file'])) {
             return $this->storeUploadedFile($fileOptions['file']);
-        } elseif (isset($fileOptions['contents'])) {
+        }
+
+        if (isset($fileOptions['contents'])) {
             return $this->storeStringContents($fileOptions['contents']);
-        } elseif (isset($fileOptions['path'])) {
+        }
+
+        if (isset($fileOptions['path'])) {
             // if source and destination is local (and not temp dir) move file
             // instead of copying or using streams, this will be a lot faster
-            if (
-                Arr::get($fileOptions, 'moveFile') === true &&
-                $this->disk->getAdapter() instanceof LocalFilesystemAdapter
-            ) {
+            if (Arr::get($fileOptions, 'moveFile') === true
+                && $this->disk->getAdapter() instanceof LocalFilesystemAdapter) {
                 return $this->storeLocalFile($fileOptions['path']);
-            } else {
-                return $this->storeUploadedFile(new File($fileOptions['path']));
             }
+
+            return $this->storeUploadedFile(new File($fileOptions['path']));
         }
 
         return false;
@@ -72,21 +78,14 @@ class StoreFile
 
     protected function storeUploadedFile(File|UploadedFile $file): string|false
     {
-        return $this->disk->putFileAs(
-            $this->payload->diskPrefix,
-            $file,
-            $this->payload->filename,
-            $this->diskOptions,
-        );
+        return $this->disk->putFileAs($this->payload->diskPrefix, $file,
+            $this->payload->filename, $this->diskOptions,);
     }
 
     protected function storeStringContents(string $contents): string|false
     {
-        return $this->disk->put(
-            "{$this->payload->diskPrefix}/{$this->payload->filename}",
-            $contents,
-            $this->diskOptions,
-        );
+        return $this->disk->put("{$this->payload->diskPrefix}/{$this->payload->filename}",
+            $contents, $this->diskOptions,);
     }
 
     protected function storeLocalFile(string $sourcePath): string|false
@@ -107,11 +106,9 @@ class StoreFile
         FileEntryPayload $payload,
         array $fileOptions,
     ): bool {
-        if (
-            Str::of($payload->clientExtension)
-                ->lower()
-                ->startsWith(['php', 'phtml'])
-        ) {
+        if (Str::of($payload->clientExtension)
+               ->lower()
+               ->startsWith(['php', 'phtml'])) {
             return true;
         }
 
@@ -119,9 +116,8 @@ class StoreFile
         if (isset($fileOptions['file'])) {
             $mimeType = $fileOptions['file']->getMimeType();
         } elseif (isset($fileOptions['path'])) {
-            $mimeType = MimeTypes::getDefault()->guessMimeType(
-                $fileOptions['path'],
-            );
+            $mimeType = MimeTypes::getDefault()
+                                 ->guessMimeType($fileOptions['path']);
         }
 
         return $mimeType === 'application/x-php';

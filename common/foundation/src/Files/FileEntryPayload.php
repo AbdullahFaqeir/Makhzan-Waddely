@@ -2,36 +2,54 @@
 
 namespace Common\Files;
 
-use Common\Files\Traits\GetsEntryTypeFromMime;
-use Common\Files\Uploads\UploadBackend;
-use Common\Files\Uploads\Uploads;
-use Common\Files\Uploads\UploadType;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use SplFileInfo;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Common\Files\Uploads\Uploads;
+use Illuminate\Http\UploadedFile;
+use Common\Files\Uploads\UploadType;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\Mime\MimeTypes;
+use Common\Files\Uploads\UploadBackend;
+use Common\Files\Traits\GetsEntryTypeFromMime;
 
+/**
+ * Class FileEntryPayload.
+ *
+ * @package Common\Files
+ * @date    07/01/2026
+ * @author  Abdullah Al-Faqeir <abdullah@devloops.net>
+ */
 class FileEntryPayload
 {
     use GetsEntryTypeFromMime;
 
     private array $data;
+
     public string|null $clientName;
+
     public string $filename;
+
     public string|null $clientMime;
+
     public string $clientExtension;
+
     public string $type;
+
     public ?string $relativePath;
+
     public int $size;
+
     public ?int $parentId;
+
     public ?int $workspaceId;
 
     public string|null $diskPrefix;
+
     public int|null $ownerId;
 
     public UploadType $uploadType;
+
     public UploadBackend $backend;
 
     public function __construct(array $data)
@@ -39,8 +57,7 @@ class FileEntryPayload
         $this->prepareData($data);
         $this->uploadType = Uploads::type($data['uploadType']);
 
-        $backendId =
-            $data['backendId'] ?? Arr::random($this->uploadType->backendIds);
+        $backendId = $data['backendId'] ?? Arr::random($this->uploadType->backendIds);
         $this->backend = Uploads::backend($backendId);
 
         $this->prepareEntryPayload();
@@ -52,17 +69,13 @@ class FileEntryPayload
         $this->data = Arr::except($data, 'file');
         if ($file instanceof UploadedFile) {
             $this->data['clientName'] = $file->getClientOriginalName();
-            $this->data['clientMime'] =
-                $data['clientMime'] ?? $file->getClientMimeType();
+            $this->data['clientMime'] = $data['clientMime'] ?? $file->getClientMimeType();
             $this->data['size'] = $file->getSize();
-            $this->data[
-                'clientExtension'
-            ] = $file->getClientOriginalExtension();
+            $this->data['clientExtension'] = $file->getClientOriginalExtension();
         } elseif ($file instanceof SplFileInfo) {
             $this->data['clientName'] = $file->getFilename();
-            $this->data['clientMime'] = MimeTypes::getDefault()->guessMimeType(
-                $file->getPathname(),
-            );
+            $this->data['clientMime'] = MimeTypes::getDefault()
+                                                 ->guessMimeType($file->getPathname());
             $this->data['size'] = $file->getSize();
             $this->data['clientExtension'] = $file->getExtension();
         }
@@ -74,22 +87,19 @@ class FileEntryPayload
         $this->clientMime = $this->data['clientMime'];
         $this->clientExtension = $this->getExtension();
         $this->filename = $this->getFilename();
-        $this->workspaceId = Arr::has($this->data, 'workspaceId')
-            ? (int) $this->data['workspaceId']
-            : null;
+        $this->workspaceId = Arr::has($this->data,
+            'workspaceId') ? (int)$this->data['workspaceId'] : null;
         $this->relativePath = $this->getRelativePath();
         $this->diskPrefix = $this->getDiskPrefix();
-        $this->parentId = (int) Arr::get($this->data, 'parentId') ?: null;
-        $this->ownerId = (int) Arr::get($this->data, 'ownerId') ?: Auth::id();
-        $this->size =
-            $this->data['file_size'] ??
-            ($this->data['size'] ?? $this->data['clientSize']);
-        $this->type =
-            Arr::get($this->data, 'type') ??
-            $this->getTypeFromMime($this->clientMime, $this->clientExtension);
+        $this->parentId = (int)Arr::get($this->data, 'parentId') ?: null;
+        $this->ownerId = (int)Arr::get($this->data, 'ownerId') ?: Auth::id();
+        $this->size = $this->data['file_size'] ?? ($this->data['size'] ?? $this->data['clientSize']);
+        $this->type = Arr::get($this->data,
+            'type') ?? $this->getTypeFromMime($this->clientMime,
+            $this->clientExtension);
     }
 
-    private function getDiskPrefix()
+    private function getDiskPrefix(): ?string
     {
         if (!$this->uploadType->public) {
             return $this->filename;
@@ -108,12 +118,10 @@ class FileEntryPayload
 
         // public files will be stored with extension
         if ($this->uploadType->public) {
-            return $keepOriginalName
-                ? $this->clientName
-                : "{$uuid}.{$this->clientExtension}";
-        } else {
-            return $uuid;
+            return $keepOriginalName ? $this->clientName : "{$uuid}.{$this->clientExtension}";
         }
+
+        return $uuid;
     }
 
     private function getRelativePath(): string|null

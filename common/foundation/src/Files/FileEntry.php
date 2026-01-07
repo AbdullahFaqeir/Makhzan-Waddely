@@ -1,61 +1,94 @@
-<?php namespace Common\Files;
+<?php
+
+namespace Common\Files;
 
 use App\Models\User;
-use Common\Core\BaseModel;
-use Common\Files\Traits\HandlesEntryPaths;
-use Common\Files\Traits\HashesId;
-use Common\Files\Uploads\Uploads;
 use Common\Tags\Tag;
 use Common\Tags\Taggable;
-use Common\Workspaces\Traits\BelongsToWorkspace;
+use Common\Core\BaseModel;
+use Common\Files\Traits\HashesId;
+use Common\Files\Uploads\Uploads;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Common\Files\Traits\HandlesEntryPaths;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Common\Workspaces\Traits\BelongsToWorkspace;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
 
+/**
+ * Class FileEntry
+ *
+ * @property string $type
+ * @property string $mime
+ * @property string $backend_id
+ * @property string $preview_token
+ *
+ * @package Common\Files
+ * @date    07/01/2026
+ * @author  Abdullah Al-Faqeir <abdullah@devloops.net>
+ */
 class FileEntry extends BaseModel
 {
     use SoftDeletes, HashesId, HandlesEntryPaths, BelongsToWorkspace, Taggable;
 
     public const MODEL_TYPE = 'fileEntry';
-    protected $guarded = ['id'];
-    protected $hidden = ['pivot', 'preview_token'];
-    protected $appends = ['hash', 'url'];
+
+    /**
+     * @var string[]
+     */
+    protected $guarded = [
+        'id',
+    ];
+
+    /**
+     * @var string[]
+     */
+    protected $hidden = [
+        'pivot',
+        'preview_token',
+    ];
+
+    /**
+     * @var string[]
+     */
+    protected $appends = [
+        'hash',
+        'url',
+    ];
+
+    /**
+     * @var string[]
+     */
     protected $casts = [
-        'id' => 'integer',
-        'file_size' => 'integer',
-        'user_id' => 'integer',
-        'parent_id' => 'integer',
-        'thumbnail' => 'boolean',
-        'public' => 'boolean',
+        'id'           => 'integer',
+        'file_size'    => 'integer',
+        'user_id'      => 'integer',
+        'parent_id'    => 'integer',
+        'thumbnail'    => 'boolean',
+        'public'       => 'boolean',
         'workspace_id' => 'integer',
-        'backend_id' => 'string',
+        'backend_id'   => 'string',
     ];
 
     public function users(): BelongsToMany
     {
-        return $this->morphedByMany(
-            FileEntryUser::class,
-            'model',
-            'file_entry_models',
-            'file_entry_id',
-            'model_id',
-        )
-            ->where('relation_type', 'access')
-            ->using(FileEntryPivot::class)
-            ->select('name', 'email', 'users.id', 'image', 'model_type')
-            ->withPivot('owner', 'permissions')
-            ->withTimestamps()
-            ->orderBy('file_entry_models.created_at');
+        return $this->morphedByMany(FileEntryUser::class, 'model',
+            'file_entry_models', 'file_entry_id', 'model_id',)
+                    ->where('relation_type', 'access')
+                    ->using(FileEntryPivot::class)
+                    ->select('name', 'email', 'users.id', 'image', 'model_type')
+                    ->withPivot('owner', 'permissions')
+                    ->withTimestamps()
+                    ->orderBy('file_entry_models.created_at');
     }
 
     public function children(): HasMany
     {
-        return $this->hasMany(static::class, 'parent_id')->withoutGlobalScope(
-            'fsType',
-        );
+        return $this->hasMany(static::class, 'parent_id')
+                    ->withoutGlobalScope('fsType');
     }
 
     public function parent(): BelongsTo
@@ -65,10 +98,8 @@ class FileEntry extends BaseModel
 
     public function tags(): BelongsToMany
     {
-        return $this->morphToMany(Tag::class, 'taggable')->wherePivot(
-            'user_id',
-            Auth::id() ?? null,
-        );
+        return $this->morphToMany(Tag::class, 'taggable')
+                    ->wherePivot('user_id', Auth::id());
     }
 
     public function getUrlAttribute(?string $value = null): ?string
@@ -77,22 +108,20 @@ class FileEntry extends BaseModel
             return $value;
         }
 
-        if (
-            !isset($this->attributes['type']) ||
-            $this->attributes['type'] === 'folder'
-        ) {
+        if (!isset($this->attributes['type'])
+            || $this->attributes['type'] === 'folder') {
             return null;
         }
 
         if ($this->upload_type) {
-            return $this->public
-                ? Uploads::type($this->upload_type)->url($this)
-                : "api/v1/file-entries/$this->id";
+            return $this->public ? Uploads::type($this->upload_type)
+                                          ?->url($this) : "api/v1/file-entries/$this->id";
         }
 
         // legacy
         if ($this->public) {
-            return trim($this->getDisk()->url($this->file_name), '/');
+            return trim($this->getDisk()
+                             ->url($this->file_name), '/');
         }
         return "api/v1/file-entries/$this->id";
     }
@@ -101,16 +130,16 @@ class FileEntry extends BaseModel
     {
         if ($this->public) {
             return "$this->disk_prefix/$this->file_name";
-        } else {
-            if ($useThumbnail) {
-                $extension = $this->extension === 'png' ? 'png' : 'jpg';
-                return "$this->file_name/thumbnail.$extension";
-            }
-            return "$this->file_name/$this->file_name";
         }
+
+        if ($useThumbnail) {
+            $extension = $this->extension === 'png' ? 'png' : 'jpg';
+            return "$this->file_name/thumbnail.$extension";
+        }
+        return "$this->file_name/$this->file_name";
     }
 
-    public function getDisk()
+    public function getDisk(): Filesystem
     {
         if ($this->upload_type) {
             return Uploads::disk($this->upload_type, $this->backend_id);
@@ -120,13 +149,12 @@ class FileEntry extends BaseModel
         return Uploads::buildLegacyDisk($this);
     }
 
-    public function scopeWhereRootOrParentNotTrashed(Builder $query)
+    public function scopeWhereRootOrParentNotTrashed(Builder $query): Builder
     {
-        return $query
-            ->whereNull('parent_id')
-            ->orWhereHas('parent', function (Builder $query) {
-                return $query->whereNull('deleted_at');
-            });
+        return $query->whereNull('parent_id')
+                     ->orWhereHas('parent', function (Builder $query) {
+                         return $query->whereNull('deleted_at');
+                     });
     }
 
     public function owner(): BelongsTo
@@ -145,11 +173,10 @@ class FileEntry extends BaseModel
         return $builder->whereIn($this->qualifyColumn('id'), function (
             $query,
         ) use ($userId, $owner) {
-            $query
-                ->select('file_entry_id')
-                ->from('file_entry_models')
-                ->where('model_id', $userId)
-                ->where('model_type', User::MODEL_TYPE);
+            $query->select('file_entry_id')
+                  ->from('file_entry_models')
+                  ->where('model_id', $userId)
+                  ->where('model_type', User::MODEL_TYPE);
 
             // if $owner is not null, need to load either only
             // entries user owns or entries user does not own
@@ -177,6 +204,7 @@ class FileEntry extends BaseModel
      * Get path of specified entry.
      *
      * @param int $id
+     *
      * @return string
      */
     public function findPath($id)
@@ -194,7 +222,7 @@ class FileEntry extends BaseModel
         $extension = pathinfo($this->name, PATHINFO_EXTENSION);
 
         if (!$extension && $this->extension) {
-            return $this->name . '.' . $this->extension;
+            return $this->name.'.'.$this->extension;
         }
 
         return $this->name;
@@ -203,19 +231,23 @@ class FileEntry extends BaseModel
     public function getTotalSize(): int
     {
         if ($this->type === 'folder') {
-            return $this->allChildren()->sum('file_size');
-        } else {
-            return $this->file_size;
+            return $this->allChildren()
+                        ->sum('file_size');
         }
+
+        return $this->file_size;
     }
 
     public function resolveRouteBinding($value, $field = null): ?self
     {
-        return $this->byIdOrHash($value)->withTrashed()->firstOrFail();
+        return $this->byIdOrHash($value)
+                    ->withTrashed()
+                    ->firstOrFail();
     }
 
     /**
-     * $value might be ID with extension: "4546.mp4" or hash: "ja4d5ad4" or ID int: 4546 or filename
+     * $value might be ID with extension: "4546.mp4" or hash: "ja4d5ad4" or ID
+     * int: 4546 or filename
      */
     public function scopeByIdOrHash(Builder $builder, $value): Builder
     {
@@ -223,7 +255,7 @@ class FileEntry extends BaseModel
             return $builder->where('file_name', $value);
         }
 
-        $id = (int) $value;
+        $id = (int)$value;
         if ($id === 0) {
             $id = $this->decodeHash($value);
         }
@@ -238,32 +270,32 @@ class FileEntry extends BaseModel
     public function toSearchableArray(): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'file_size' => $this->file_size,
-            'mime' => $this->mime,
-            'extension' => $this->extension,
-            'owner_id' => $this->owner_id,
-            'created_at' => $this->created_at->timestamp ?? '_null',
-            'updated_at' => $this->updated_at->timestamp ?? '_null',
-            'deleted_at' => $this->deleted_at->timestamp ?? '_null',
-            'public' => $this->public,
-            'description' => $this->description,
-            'password' => $this->password,
-            'type' => $this->type,
+            'id'           => $this->id,
+            'name'         => $this->name,
+            'file_size'    => $this->file_size,
+            'mime'         => $this->mime,
+            'extension'    => $this->extension,
+            'owner_id'     => $this->owner_id,
+            'created_at'   => $this->created_at->timestamp ?? '_null',
+            'updated_at'   => $this->updated_at->timestamp ?? '_null',
+            'deleted_at'   => $this->deleted_at->timestamp ?? '_null',
+            'public'       => $this->public,
+            'description'  => $this->description,
+            'password'     => $this->password,
+            'type'         => $this->type,
             'workspace_id' => $this->workspace_id ?? '_null',
-            'tags' => $this->tags->pluck('name'),
+            'tags'         => $this->tags->pluck('name'),
         ];
     }
 
     public function toNormalizedArray(): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
+            'id'          => $this->id,
+            'name'        => $this->name,
             'description' => $this->type,
-            'image' => null,
-            'model_type' => self::MODEL_TYPE,
+            'image'       => null,
+            'model_type'  => self::MODEL_TYPE,
         ];
     }
 

@@ -54,5 +54,5 @@ export const SiteConfig: Partial<SiteConfigContextValue> = {
 
 export const UploadType = {
   ...CommonUploadType,
-  bedrive: 'bedrive',
+  waddely: 'waddely',
 } as const;

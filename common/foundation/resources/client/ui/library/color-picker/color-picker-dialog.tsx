@@ -16,7 +16,7 @@ export function ColorPickerDialog({
   const {close, value, setValue, initialValue} = useDialogContext<
     string | null
   >();
-  // todo: remove this once pixie and bedrive are refactored to use dialogTrigger currentValue (use "currentValue" for defaultValue as well)
+  // todo: remove this once pixie and waddely are refactored to use dialogTrigger currentValue (use "currentValue" for defaultValue as well)
   //const initialValue = useRef(defaultValue);
 
   return (

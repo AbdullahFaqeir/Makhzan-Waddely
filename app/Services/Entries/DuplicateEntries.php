@@ -26,7 +26,7 @@ class DuplicateEntries
         $totalBytes = FileEntry::whereIn('id', $this->entryIds)->sum(
             'file_size',
         );
-        $usage = new GetUserSpaceUsage(uploadType: 'bedrive');
+        $usage = new GetUserSpaceUsage(uploadType: 'waddely');
         if (!$usage->hasEnoughSpaceToUpload($totalBytes)) {
             throw ValidationException::withMessages([
                 'storage' => FileUploadValidator::notEnoughSpaceMessage(),
