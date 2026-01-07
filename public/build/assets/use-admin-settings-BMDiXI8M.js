@@ -1,1 +1,0 @@
-import{cc as n}from"./main-TIUJvpaR.js";import{u as s}from"./useSuspenseQuery-Bu7JdXWw.js";function f(){return s({...n.settings.index,select:r})}function r(e){for(const t in e)t==="themes"||t==="defaults"||(Array.isArray(e[t])?e[t]=e[t].map(r):typeof e[t]=="object"?e[t]=r(e[t]):typeof e[t]=="number"?e[t]=e[t].toString():e[t]==null&&(e[t]=""));return e}export{f as u};

@@ -1,1 +1,0 @@
-import{g as o}from"./main-TIUJvpaR.js";function a({isUsingInvite:g}={}){var n,t,b,r;const{social:e}=o();return!((n=e==null?void 0:e.google)!=null&&n.enable)&&!((t=e==null?void 0:e.facebook)!=null&&t.enable)&&!((b=e==null?void 0:e.twitter)!=null&&b.enable)&&(!((r=e==null?void 0:e.envato)!=null&&r.enable)||!!g)}export{a as u};

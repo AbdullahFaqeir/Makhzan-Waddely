@@ -1,1 +1,0 @@
-import{w as n,ap as r,aq as a,aJ as e,x as o,k as u}from"./main-BdzhGpqn.js";function c(){const{trans:t}=n();return r({mutationFn:s=>i(s),onSuccess:()=>{e(t(o("Subscription renewed.")))},onError:s=>a(s)})}function i({subscriptionId:t}){return u.post(`billing/subscriptions/${t}/resume`).then(s=>s.data)}export{c as u};

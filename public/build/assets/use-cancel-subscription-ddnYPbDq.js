@@ -1,0 +1,2 @@
+import{w as e,an as o,ao as r,aH as i,x as a,k as c}from"./main-owSUWNVS.js";function l(){const{trans:n}=e();return o({mutationFn:s=>u(s),onSuccess:(s,t)=>{i(t.delete?n(a("Subscription deleted.")):n(a("Subscription cancelled.")))},onError:s=>r(s)})}function u({subscriptionId:n,...s}){return c.post(`billing/subscriptions/${n}/cancel`,s).then(t=>t.data)}export{l as u};
+//# sourceMappingURL=use-cancel-subscription-ddnYPbDq.js.map

@@ -1,1 +1,0 @@
-import{r as t,cs as n,au as o}from"./main-BdzhGpqn.js";var a;const f=(a=o.useInsertionEffect)!==null&&a!==void 0?a:n;function $(c){const r=t.useRef(null);return f(()=>{r.current=c},[c]),t.useCallback((...s)=>{const e=r.current;return e==null?void 0:e(...s)},[])}export{$};

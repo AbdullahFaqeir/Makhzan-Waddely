@@ -6,7 +6,7 @@ import {
   LengthAwarePaginationResponse,
   PaginatedBackendResponse,
 } from '@common/http/backend-response/pagination-response';
-import {queryFactoryHelpers} from '@common/http/queries-file-helpers';
+import {get} from '@common/http/queries-file-helpers';
 import {
   infiniteQueryOptions,
   keepPreviousData,
@@ -20,11 +20,7 @@ export const commentQueries = {
     return queryOptions({
       placeholderData: keepPreviousData,
       queryKey: ['comments', params],
-      queryFn: () =>
-        queryFactoryHelpers.get<PaginatedBackendResponse<Comment>>(
-          'comment',
-          params,
-        ),
+      queryFn: () => get<PaginatedBackendResponse<Comment>>('comment', params),
     });
   },
   commentable: (commentable: Commentable) => {
@@ -37,7 +33,7 @@ export const commentQueries = {
         }>({
           queryKey: [...baseKey, `${perPage}`],
           queryFn: ({pageParam}) =>
-            queryFactoryHelpers.get('commentable/comments', {
+            get('commentable/comments', {
               page: pageParam as number,
               commentable_type: commentable.model_type,
               commentable_id: commentable.id,

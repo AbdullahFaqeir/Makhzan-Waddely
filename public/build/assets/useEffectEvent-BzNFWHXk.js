@@ -1,0 +1,2 @@
+import{r as t,cq as n,as as o}from"./main-owSUWNVS.js";var a;const f=(a=o.useInsertionEffect)!==null&&a!==void 0?a:n;function $(c){const r=t.useRef(null);return f(()=>{r.current=c},[c]),t.useCallback((...s)=>{const e=r.current;return e==null?void 0:e(...s)},[])}export{$};
+//# sourceMappingURL=useEffectEvent-BzNFWHXk.js.map

@@ -1,21 +1,21 @@
 import {
   Channel,
   ChannelContentItem,
-  ChannelLoader,
 } from '@common/channels/channel';
-import {ChannelQueryParams} from '@common/channels/use-channel-query-params';
+import {useChannelQueryParams} from '@common/channels/use-channel-query-params';
 import {validateDatatableSearch} from '@common/datatable/filters/utils/validate-datatable-search';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
 import {
   getNextPageParam,
   PaginatedBackendResponse,
 } from '@common/http/backend-response/pagination-response';
-import {queryFactoryHelpers} from '@common/http/queries-file-helpers';
+import {get} from '@common/http/queries-file-helpers';
 import {
   infiniteQueryOptions,
   keepPreviousData,
   queryOptions,
 } from '@tanstack/react-query';
+
 
 export const channelQueries = {
   invalidateKey: ['channels'],
@@ -25,29 +25,28 @@ export const channelQueries = {
       placeholderData: keepPreviousData,
       queryKey: ['channels', params],
       queryFn: () =>
-        queryFactoryHelpers.get<
-          PaginatedBackendResponse<Channel> & {presets: any[]}
-        >('channel', params),
+        get<PaginatedBackendResponse<Channel> & {presets: any[]}>(
+          'channel',
+          params,
+        ),
     });
   },
   show: <T extends ChannelContentItem>(
     slugOrId: string | number,
-    loader: ChannelLoader,
-    queryParams: ChannelQueryParams,
+    queryParams: {},
   ) => {
     return queryOptions<{channel: Channel<T>} & BackendResponse>({
-      queryKey: ['channels', 'show', `${slugOrId}`, loader, queryParams],
+      queryKey: ['channels', 'show', `${slugOrId}`, queryParams],
       queryFn: () =>
-        queryFactoryHelpers.get(`channel/${slugOrId}`, {
+        get(`channel/${slugOrId}`, {
           ...queryParams,
-          loader,
         }),
     });
   },
   showInfinite: <T extends ChannelContentItem>(
     slugOrId: string | number,
-    loader: ChannelLoader,
-    queryParams: ChannelQueryParams,
+    loader: {},
+    queryParams: {},
   ) => {
     return infiniteQueryOptions<{channel: Channel<T>}>({
       queryKey: [
@@ -58,12 +57,11 @@ export const channelQueries = {
         queryParams,
       ],
       queryFn: ({pageParam, signal}) =>
-        queryFactoryHelpers.get(
+        get(
           `channel/${slugOrId}`,
           {
             ...queryParams,
             page: `${pageParam}`,
-            loader,
           },
           signal,
         ),
