@@ -44,7 +44,7 @@ class DriveFileEntryPolicy extends FileEntryPolicy
         ShareableLink|null $link = null,
     ): bool {
         if (($link = $this->getLinkForRequest($link)) !== null) {
-            return $this->authorizeShareableLink($link, $entry);
+          return $this->authorizeShareableLink($link, $entry);
         }
         return parent::show($user, $entry);
     }
