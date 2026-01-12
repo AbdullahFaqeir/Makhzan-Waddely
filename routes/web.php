@@ -24,5 +24,9 @@ Route::get('register', [HomeController::class, 'render'])->name('register');
 Route::get('forgot-password', [HomeController::class, 'render']);
 Route::get('pricing', '\Common\Billing\PricingPageController');
 
+Route::get('gigi',function (){
+    dd(settings('uploading.backends'));
+});
+
 //CATCH ALL ROUTES AND REDIRECT TO HOME
 Route::fallback([HomeController::class, 'render']);
