@@ -38,27 +38,27 @@ class FileResponseFactory
         $staticFileDelivery = config('filesystems.static_file_delivery');
 
         if ($this->shouldRedirectToRemoteUrl($entry)) {
-            echo '1';
+            dd(1, $entry, $isLocalDrive, $staticFileDelivery);
             return new RemoteFileResponse();
         }
 
         if ($isLocalDrive && !$entry->public && $staticFileDelivery) {
-            echo '2';
+            dd(2, $entry, $isLocalDrive, $staticFileDelivery);
             return $staticFileDelivery === 'xsendfile' ? new XSendFileResponse() : new XAccelRedirectFileResponse();
         }
 
         if (!$isLocalDrive
             && config('filesystems.use_presigned_s3_urls')) {
-            echo '3';
+            dd(3, $entry, $isLocalDrive, $staticFileDelivery);
             return new StreamedFileResponse();
         }
 
         if ($disposition === 'inline'
             && $this->shouldReturnRangeResponse($entry)) {
-            echo '4';
+            dd(4, $entry, $isLocalDrive, $staticFileDelivery);
             return new RangeFileResponse();
         }
-        echo '5';
+        dd(5, $entry, $isLocalDrive, $staticFileDelivery);
         return new StreamedFileResponse();
     }
 
