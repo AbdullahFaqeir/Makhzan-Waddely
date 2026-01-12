@@ -172,7 +172,7 @@ return [
     // app
     'disable_thumbnail_creation' => env('DISABLE_THUMBNAIL_CREATION', false),
     'use_presigned_s3_urls'      => env('USE_PRESIGNED_S3_URLS', true),
-    'static_file_delivery'       => env('STATIC_FILE_DELIVERY', true),
+    'static_file_delivery'       => env('STATIC_FILE_DELIVERY', null),
     'uploads_disable_tus'        => env('UPLOADS_DISABLE_TUS'),
     'uploads_tus_method'         => env('UPLOADS_TUS_METHOD'),
 
