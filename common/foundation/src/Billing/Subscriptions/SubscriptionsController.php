@@ -56,8 +56,8 @@ class SubscriptionsController extends BaseController
             'description' => 'string|nullable',
         ]);
 
-        $data['renews_at'] = Carbon::parse($data['renews_at']);
-        $data['ends_at'] = Carbon::parse($data['ends_at']);
+        $data['renews_at'] = Carbon::parse($data['renews_at'])->unix();
+        $data['ends_at'] = Carbon::parse($data['ends_at'])->unix();
 
         $subscription = $this->subscription->create($data);
 
