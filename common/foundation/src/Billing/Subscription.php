@@ -1,18 +1,19 @@
-<?php namespace Common\Billing;
+<?php
+namespace Common\Billing;
 
+use LogicException;
 use App\Models\User;
-use Common\Billing\Gateways\Contracts\CommonSubscriptionGatewayActions;
-use Common\Billing\Gateways\Paypal\Paypal;
-use Common\Billing\Gateways\Stripe\Stripe;
-use Common\Billing\Invoices\Invoice;
+use Common\Core\BaseModel;
 use Common\Billing\Models\Price;
 use Common\Billing\Models\Product;
-use Common\Billing\Subscriptions\SubscriptionFactory;
-use Common\Core\BaseModel;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Common\Billing\Invoices\Invoice;
+use Common\Billing\Gateways\Paypal\Paypal;
+use Common\Billing\Gateways\Stripe\Stripe;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use LogicException;
+use Common\Billing\Subscriptions\SubscriptionFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Common\Billing\Gateways\Contracts\CommonSubscriptionGatewayActions;
 
 class Subscription extends BaseModel
 {
@@ -32,13 +33,13 @@ class Subscription extends BaseModel
     ];
 
     protected $casts = [
-        'id' => 'integer',
-        'price_id' => 'integer',
-        'product_id' => 'integer',
-        'quantity' => 'integer',
+        'id'            => 'integer',
+        'price_id'      => 'integer',
+        'product_id'    => 'integer',
+        'quantity'      => 'integer',
         'trial_ends_at' => 'datetime',
-        'ends_at' => 'timestamp',
-        'renews_at' => 'timestamp',
+        'ends_at'       => 'datetime',
+        'renews_at'     => 'datetime',
     ];
 
     public function getOnGracePeriodAttribute(): bool
@@ -53,7 +54,8 @@ class Subscription extends BaseModel
 
     public function getPastDueAttribute(): bool
     {
-        return $this->gateway()?->isSubscriptionPastDue($this) ?? false;
+        return $this->gateway()
+                    ?->isSubscriptionPastDue($this) ?? false;
     }
 
     public function getValidAttribute(): bool
@@ -97,7 +99,8 @@ class Subscription extends BaseModel
     }
 
     /**
-     * Determine if the subscription is active, on trial, or within its grace period.
+     * Determine if the subscription is active, on trial, or within its grace
+     * period.
      */
     public function valid(): bool
     {
@@ -133,7 +136,8 @@ class Subscription extends BaseModel
     }
 
     /**
-     * Determine if the subscription is within its grace period after cancellation.
+     * Determine if the subscription is within its grace period after
+     * cancellation.
      */
     public function onGracePeriod(): bool
     {
@@ -142,18 +146,16 @@ class Subscription extends BaseModel
 
     public function changePlan(Product $newProduct, Price $newPrice): self
     {
-        $isSuccess = $this->gateway()?->changePlan(
-            $this,
-            $newProduct,
-            $newPrice,
-        );
+        $isSuccess = $this->gateway()
+                          ?->changePlan($this, $newProduct, $newPrice);
 
         if ($isSuccess) {
             $this->fill([
                 'product_id' => $newProduct->id,
-                'price_id' => $newPrice->id,
-                'ends_at' => null,
-            ])->save();
+                'price_id'   => $newPrice->id,
+                'ends_at'    => null,
+            ])
+                 ->save();
         }
 
         return $this;
@@ -162,7 +164,8 @@ class Subscription extends BaseModel
     public function cancel(bool $atPeriodEnd = true): self
     {
         if ($this->gateway_name !== 'none') {
-            $this->gateway()->cancelSubscription($this, $atPeriodEnd);
+            $this->gateway()
+                 ->cancelSubscription($this, $atPeriodEnd);
         }
 
         // If the user was on trial, we will set the grace period to end when the trial
@@ -187,9 +190,10 @@ class Subscription extends BaseModel
     public function markAsCancelled(): void
     {
         $this->fill([
-            'ends_at' => $this->renews_at,
+            'ends_at'   => $this->renews_at,
             'renews_at' => null,
-        ])->save();
+        ])
+             ->save();
     }
 
     /**
@@ -199,12 +203,13 @@ class Subscription extends BaseModel
     {
         $this->cancel(false);
         $this->delete();
-        $this->invoices()->delete();
+        $this->invoices()
+             ->delete();
 
         $this->user?->update([
             'card_last_four' => null,
-            'card_brand' => null,
-            'card_expires' => null,
+            'card_brand'     => null,
+            'card_expires'   => null,
         ]);
 
         return $this;
@@ -213,11 +218,7 @@ class Subscription extends BaseModel
     public function resume(): self
     {
         if (!$this->onGracePeriod()) {
-            throw new LogicException(
-                __(
-                    'Unable to resume subscription that is not within grace period.',
-                ),
-            );
+            throw new LogicException(__('Unable to resume subscription that is not within grace period.'),);
         }
 
         if ($this->onTrial()) {
@@ -230,9 +231,10 @@ class Subscription extends BaseModel
         // subscription object. This will force Stripe to resume this subscription
         // where we left off. Then, we'll set the proper trial ending timestamp.
         if ($this->gateway_name !== 'none') {
-            $this->gateway()->resumeSubscription($this, [
-                'trial_end' => $trialEnd,
-            ]);
+            $this->gateway()
+                 ->resumeSubscription($this, [
+                     'trial_end' => $trialEnd,
+                 ]);
         }
 
         // Finally, we will remove the ending timestamp from the user's record in the
@@ -262,8 +264,8 @@ class Subscription extends BaseModel
     public function toNormalizedArray(): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->this->gateway_name,
+            'id'         => $this->id,
+            'name'       => $this->this->gateway_name,
             'model_type' => self::MODEL_TYPE,
         ];
     }
@@ -271,15 +273,15 @@ class Subscription extends BaseModel
     public function toSearchableArray(): array
     {
         return [
-            'id' => $this->id,
-            'product_id' => $this->product_id,
-            'price_id' => $this->price_id,
+            'id'           => $this->id,
+            'product_id'   => $this->product_id,
+            'price_id'     => $this->price_id,
             'gateway_name' => $this->gateway_name,
-            'user' => $this->user ? $this->user->getSearchableValues() : null,
-            'description' => $this->description,
-            'ends_at' => $this->ends_at,
-            'created_at' => $this->created_at->timestamp ?? '_null',
-            'updated_at' => $this->updated_at->timestamp ?? '_null',
+            'user'         => $this->user ? $this->user->getSearchableValues() : null,
+            'description'  => $this->description,
+            'ends_at'      => $this->ends_at,
+            'created_at'   => $this->created_at->timestamp ?? '_null',
+            'updated_at'   => $this->updated_at->timestamp ?? '_null',
         ];
     }
 
