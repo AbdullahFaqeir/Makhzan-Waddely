@@ -27,7 +27,7 @@ return [
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => env('DB_PREFIX', ''),
             'prefix_indexes' => true,
-            'strict' => env('DB_STRICT', true),
+            'strict' => env('DB_STRICT', false),
             'engine' => null,
             'options' => extension_loaded('pdo_mysql')
                 ? array_filter([
@@ -49,7 +49,7 @@ return [
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => env('DB_PREFIX', ''),
             'prefix_indexes' => true,
-            'strict' => env('DB_STRICT', true),
+            'strict' => env('DB_STRICT', false),
             'engine' => null,
             'options' => extension_loaded('pdo_mysql')
                 ? array_filter([
