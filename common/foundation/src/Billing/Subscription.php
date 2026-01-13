@@ -37,8 +37,8 @@ class Subscription extends BaseModel
         'product_id' => 'integer',
         'quantity' => 'integer',
         'trial_ends_at' => 'datetime',
-        'ends_at' => 'datetime',
-        'renews_at' => 'datetime',
+        'ends_at' => 'timestamp',
+        'renews_at' => 'timestamp',
     ];
 
     public function getOnGracePeriodAttribute(): bool
