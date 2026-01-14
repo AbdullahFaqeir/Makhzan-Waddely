@@ -104,6 +104,7 @@ class FileEntryPayload
         if (!$this->uploadType->public) {
             return $this->filename;
         }
+        return '';
     }
 
     private function getFilename()
